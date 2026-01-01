@@ -1,0 +1,84 @@
+// IdeaForge Database Schema
+// This schema defines all models for the project idea incubator platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Core model: Stores project ideas with original and enhanced versions
+model Idea {
+  id            String         @id @default(cuid())
+  originalIdea  String         @db.Text
+  enhancedIdea  String         @db.Text
+  createdAt     DateTime       @default(now())
+  userFlow      Json?
+  scores        Score[]
+  improvements  Improvement[]
+  features      Feature[]
+  techStack     TechStack[]
+  kanbanTickets KanbanTicket[]
+}
+
+// Stores 6-dimension validation scores for each idea
+model Score {
+  id            String @id @default(cuid())
+  ideaId        String
+  dimension     String
+  score         Int
+  justification String @db.Text
+  idea          Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+}
+
+// Strategic improvement suggestions for weak areas
+model Improvement {
+  id         String @id @default(cuid())
+  ideaId     String
+  dimension  String
+  suggestion String @db.Text
+  idea       Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+}
+
+// Core features extracted for MVP with priority levels
+model Feature {
+  id          String @id @default(cuid())
+  ideaId      String
+  name        String
+  description String @db.Text
+  priority    String // "must-have", "should-have", "nice-to-have"
+  idea        Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+}
+
+// Technology stack recommendations by category
+model TechStack {
+  id            String @id @default(cuid())
+  ideaId        String
+  category      String
+  technology    String
+  justification String @db.Text
+  idea          Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+}
+
+// Kanban board tickets for development tracking
+model KanbanTicket {
+  id          String  @id @default(cuid())
+  ideaId      String
+  title       String
+  description String  @db.Text
+  status      String  @default("backlog") // "backlog", "todo", "in-progress", "in-review", "done"
+  effort      String?
+  idea        Idea    @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+}
