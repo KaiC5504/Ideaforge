@@ -182,15 +182,273 @@ Response: { "success": true, "data": Idea[] }
 
 ---
 
-## Phase 4: API Routes - Related Data
+## Phase 4: API Routes - Related Data ✓
 
-**Status:** Not started
+**Completed:** 2026-01-02
+
+### Step 4.1: Create POST /api/ideas/[id]/scores Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/scores/route.ts`
+- Implemented POST handler to add validation scores to an idea
+- Validates that idea exists before creating scores
+- Uses Zod to validate score array with dimension, score (1-10), and justification fields
+- Creates multiple scores using `createManyAndReturn`
+- Returns all created scores
+
+**API Contract:**
+```
+POST /api/ideas/:id/scores
+Body: [{ "dimension": string, "score": number (1-10), "justification": string }]
+Response: { "success": true, "data": Score[] }
+Error: 404 if idea not found, 400 for validation errors
+```
+
+### Step 4.2: Create POST /api/ideas/[id]/improvements Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/improvements/route.ts`
+- Implemented POST handler to add strategic improvements to an idea
+- Validates idea exists before creating improvements
+- Uses Zod to validate array of improvements with dimension and suggestion fields
+- Returns all created improvements
+
+**API Contract:**
+```
+POST /api/ideas/:id/improvements
+Body: [{ "dimension": string, "suggestion": string }]
+Response: { "success": true, "data": Improvement[] }
+Error: 404 if idea not found, 400 for validation errors
+```
+
+### Step 4.3: Create POST /api/ideas/[id]/features Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/features/route.ts`
+- Implemented POST handler to add core features to an idea
+- Validates priority field using Zod enum (must-have, should-have, nice-to-have)
+- Creates features with name, description, and priority
+- Returns all created features
+
+**API Contract:**
+```
+POST /api/ideas/:id/features
+Body: [{ "name": string, "description": string, "priority": "must-have"|"should-have"|"nice-to-have" }]
+Response: { "success": true, "data": Feature[] }
+Error: 404 if idea not found, 400 for validation errors (including invalid priority)
+```
+
+### Step 4.4: Create POST /api/ideas/[id]/techstack Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/techstack/route.ts`
+- Implemented POST handler to add technology stack recommendations
+- Validates idea exists before creating tech stack items
+- Requires category, technology, and justification for each item
+- Returns all created tech stack items
+
+**API Contract:**
+```
+POST /api/ideas/:id/techstack
+Body: [{ "category": string, "technology": string, "justification": string }]
+Response: { "success": true, "data": TechStack[] }
+Error: 404 if idea not found, 400 for validation errors
+```
+
+### Step 4.5: Create POST /api/ideas/[id]/kanban Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/kanban/route.ts`
+- Implemented POST handler to add kanban tickets to an idea
+- Validates status field using Zod enum (backlog, todo, in-progress, in-review, done)
+- Status defaults to "backlog" if not provided
+- Effort field is optional
+- Returns all created tickets
+
+**API Contract:**
+```
+POST /api/ideas/:id/kanban
+Body: [{ "title": string, "description": string, "status"?: string, "effort"?: string }]
+Response: { "success": true, "data": KanbanTicket[] }
+Error: 404 if idea not found, 400 for validation errors (including invalid status)
+```
+
+### Step 4.6: Create PATCH /api/ideas/[id]/kanban/[ticketId] Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/kanban/[ticketId]/route.ts`
+- Implemented PATCH handler to update a kanban ticket's status
+- Validates both idea and ticket exist
+- Verifies ticket belongs to the specified idea
+- Updates only the status field
+- Returns updated ticket
+
+**API Contract:**
+```
+PATCH /api/ideas/:id/kanban/:ticketId
+Body: { "status": "backlog"|"todo"|"in-progress"|"in-review"|"done" }
+Response: { "success": true, "data": KanbanTicket }
+Error: 404 if idea or ticket not found, 400 if ticket doesn't belong to idea or invalid status
+```
+
+### Step 4.7: Create POST /api/ideas/[id]/userflow Endpoint ✓
+
+**What was done:**
+- Created `src/app/api/ideas/[id]/userflow/route.ts`
+- Implemented POST handler to add user flow diagram data to an idea
+- Validates structure with nodes and edges arrays
+- Node schema: id, type, label, optional description
+- Edge schema: id, source, target, optional label and condition
+- Stores entire JSON structure in the `userFlow` field of the Idea
+- Returns updated idea with userFlow data
+
+**API Contract:**
+```
+POST /api/ideas/:id/userflow
+Body: {
+  "nodes": [{ "id": string, "type": string, "label": string, "description"?: string }],
+  "edges": [{ "id": string, "source": string, "target": string, "label"?: string, "condition"?: string }]
+}
+Response: { "success": true, "data": { id, userFlow } }
+Error: 404 if idea not found, 400 for validation errors
+```
+
+### Phase 4 Summary
+
+**All endpoints follow consistent patterns:**
+- Check if parent idea exists (404 if not)
+- Validate request body with Zod schemas
+- Use enum validation for constrained fields (priority, status)
+- Return `{ success: true, data: ... }` on success
+- Return `{ success: false, error: ..., details: ... }` on validation failure
+- All endpoints tested and verified using Postman
+- Build confirmed successful with all routes registered
 
 ---
 
-## Phase 5: Frontend - Basic Layout
+## Phase 5: Frontend - Basic Layout ✓
 
-**Status:** Not started
+**Completed:** 2026-01-02
+
+### Step 5.1: Create Root Layout ✓
+
+**What was done:**
+- Updated `src/app/layout.tsx` with full header and footer structure
+- Added sticky header with IdeaForge logo (lightbulb SVG icon) and navigation
+- Created gradient logo box (violet-500 to purple-600)
+- Added backdrop blur effect on header (bg-slate-950/80)
+- Implemented minimal footer with branding
+- Set up dark theme with slate-950 background
+- Configured Poppins (headings) + Open Sans (body) fonts via Google Fonts
+
+**Design Decisions:**
+- Dark theme for professional developer-focused UI
+- Violet/purple accent color for creative/idea platform branding
+- Sticky header with blur for modern feel
+- Semantic HTML structure (header, main, footer)
+
+### Step 5.2: Create Dashboard Page ✓
+
+**What was done:**
+- Updated `src/app/page.tsx` as server component
+- Fetches ideas directly from database using Prisma
+- Displays responsive grid (1 col mobile, 2 col tablet, 3 col desktop)
+- Idea cards show original idea (truncated 80 chars) and enhanced idea (truncated 120 chars)
+- Each card shows creation date and "View details" link
+- Cards have hover effects with violet shadow accent
+- Empty state with icon and helpful message when no ideas exist
+
+**Component Features:**
+- `formatDate()` utility for readable dates
+- `truncate()` utility for text overflow
+- Cards link to `/ideas/{id}` detail pages
+- Cursor pointer on all interactive elements
+
+### Step 5.3: Create Idea Detail Page ✓
+
+**What was done:**
+- Created `src/app/ideas/[id]/page.tsx` as server component
+- Fetches idea with all relations (scores, improvements, features, techStack, kanbanTickets)
+- Displays 7 organized sections with consistent styling
+- Created `src/app/ideas/[id]/not-found.tsx` for 404 handling
+
+**Sections Implemented:**
+
+1. **Idea Comparison**
+   - Side-by-side original vs enhanced idea
+   - Enhanced side has violet border accent
+   - Responsive: stacks on mobile
+
+2. **Validation Scores**
+   - Grid of score cards (1/2/3 columns responsive)
+   - Progress bars with color coding (green ≥8, yellow 5-7, red <5)
+   - Shows dimension name, score/10, and justification
+
+3. **Strategic Improvements**
+   - Cards with dimension badge and suggestion text
+   - Violet badge styling for dimension labels
+
+4. **Core Features**
+   - Grouped by priority (must-have, should-have, nice-to-have)
+   - Color-coded priority badges (red/yellow/green)
+   - Feature name and description display
+
+5. **Tech Stack**
+   - Grouped by category (Frontend, Backend, Database, etc.)
+   - Shows technology name and justification
+   - Card-based layout
+
+6. **User Flow**
+   - Placeholder showing raw JSON data
+   - Note about interactive diagram coming in Phase 6
+   - Scrollable pre-formatted code block
+
+7. **Kanban Board**
+   - 5 columns (Backlog, To Do, In Progress, In Review, Done)
+   - Tickets sorted into columns by status
+   - Shows ticket count per column
+   - Displays title, description, and effort
+
+**Helper Functions:**
+- `getScoreColor()` - Returns Tailwind class based on score value
+- `getPriorityColor()` - Returns Tailwind classes for priority badges
+- `getStatusColor()` - Returns Tailwind classes for status badges
+- `formatDate()` - Formats date with time
+
+### Tailwind v4 Compatibility ✓
+
+**Issue Encountered:**
+- Tailwind v4 with Next.js 16 doesn't support `@apply` in `@layer components`
+- Error: "Cannot apply unknown utility class"
+
+**Solution:**
+- Removed custom component classes from globals.css
+- Used inline Tailwind utility classes throughout components
+- Kept only font imports and basic body/heading font families in CSS
+
+### Phase 5 Summary
+
+**Files Created/Modified:**
+| File | Purpose |
+|------|---------|
+| `src/app/globals.css` | Font imports, base styles |
+| `src/app/layout.tsx` | Root layout with header/footer |
+| `src/app/page.tsx` | Dashboard with ideas grid |
+| `src/app/ideas/[id]/page.tsx` | Idea detail page with 7 sections |
+| `src/app/ideas/[id]/not-found.tsx` | 404 page for missing ideas |
+
+**Routes Added:**
+| Route | Type | Description |
+|-------|------|-------------|
+| `/` | Static | Dashboard with ideas list |
+| `/ideas/[id]` | Dynamic | Full idea detail view |
+
+**Design System:**
+- Background: slate-950
+- Cards: slate-800 with slate-700 border
+- Accent: violet-500/600
+- Text: white (primary), slate-300/400/500 (muted)
+- Fonts: Poppins (headings), Open Sans (body)
 
 ---
 
@@ -252,4 +510,4 @@ npx prisma studio    # Visual database browser
 
 ---
 
-**Last Updated:** 2026-01-02 (Phase 3 completed)
+**Last Updated:** 2026-01-02 (Phase 5 completed)

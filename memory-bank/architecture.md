@@ -10,14 +10,26 @@ This document explains the project structure and what each file does.
 ideaforge/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx      # Root layout with HTML structure
-│   │   ├── page.tsx        # Homepage component
-│   │   ├── globals.css     # Tailwind CSS directives
+│   │   ├── layout.tsx      # Root layout with header/footer
+│   │   ├── page.tsx        # Dashboard - ideas list
+│   │   ├── globals.css     # Tailwind CSS + font imports
+│   │   ├── ideas/
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx        # Idea detail page
+│   │   │       └── not-found.tsx   # 404 page for ideas
 │   │   └── api/
 │   │       └── ideas/
 │   │           ├── route.ts        # GET /api/ideas, POST /api/ideas
 │   │           └── [id]/
-│   │               └── route.ts    # GET /api/ideas/[id]
+│   │               ├── route.ts    # GET /api/ideas/[id]
+│   │               ├── scores/route.ts
+│   │               ├── improvements/route.ts
+│   │               ├── features/route.ts
+│   │               ├── techstack/route.ts
+│   │               ├── userflow/route.ts
+│   │               └── kanban/
+│   │                   ├── route.ts
+│   │                   └── [ticketId]/route.ts
 │   └── lib/
 │       └── db.ts           # Prisma client with adapter pattern
 ├── prisma/
@@ -128,27 +140,101 @@ ideaforge/
 
 **src/app/api/ideas/[id]/route.ts**
 - `GET /api/ideas/:id` - Retrieve complete idea with all relations
-- Includes: scores, improvements, features, techStack, kanbanTickets
+- Includes: scores, improvements, features, techStack, kanbanTickets, userFlow
 - Returns 404 if idea not found
 
-### Source Files
+**src/app/api/ideas/[id]/scores/route.ts**
+- `POST /api/ideas/:id/scores` - Add validation scores to an idea
+- Accepts array of scores with dimension, score (1-10), and justification
+- Validates idea exists before creating scores
+- Uses Zod enum validation for score range
+- Returns all created scores
+
+**src/app/api/ideas/[id]/improvements/route.ts**
+- `POST /api/ideas/:id/improvements` - Add strategic improvements to an idea
+- Accepts array of improvements with dimension and suggestion
+- Links improvements to weak scoring areas
+- Returns all created improvements
+
+**src/app/api/ideas/[id]/features/route.ts**
+- `POST /api/ideas/:id/features` - Add core features to an idea
+- Accepts array of features with name, description, and priority
+- Priority must be "must-have", "should-have", or "nice-to-have"
+- Uses Zod enum validation for priority field
+- Returns all created features
+
+**src/app/api/ideas/[id]/techstack/route.ts**
+- `POST /api/ideas/:id/techstack` - Add technology stack recommendations
+- Accepts array of tech items with category, technology, and justification
+- Returns all created tech stack items
+
+**src/app/api/ideas/[id]/kanban/route.ts**
+- `POST /api/ideas/:id/kanban` - Add kanban tickets to an idea
+- Accepts array of tickets with title, description, status (optional), and effort (optional)
+- Status defaults to "backlog" if not provided
+- Valid statuses: "backlog", "todo", "in-progress", "in-review", "done"
+- Returns all created tickets
+
+**src/app/api/ideas/[id]/kanban/[ticketId]/route.ts**
+- `PATCH /api/ideas/:id/kanban/:ticketId` - Update a kanban ticket's status
+- Accepts JSON body with status field
+- Validates ticket belongs to the specified idea
+- Only updates status field
+- Returns updated ticket
+
+**src/app/api/ideas/[id]/userflow/route.ts**
+- `POST /api/ideas/:id/userflow` - Add user flow diagram data to an idea
+- Accepts JSON with nodes and edges arrays
+- Node structure: id, type, label, description (optional)
+- Edge structure: id, source, target, label (optional), condition (optional)
+- Stores complete graph data in Idea.userFlow JSON field
+- Returns updated idea with userFlow data
+
+### Source Files (Frontend)
 
 **src/app/layout.tsx**
 - Root layout component (required by App Router)
-- Sets HTML `<html>` and `<body>` structure
-- Defines page metadata: title "IdeaForge - Project Idea Incubator"
-- Imports global CSS styles
-- Wraps all pages with consistent structure
+- Sticky header with IdeaForge logo and navigation
+- Logo: Lightbulb SVG icon with violet-to-purple gradient background
+- Header has backdrop blur effect (bg-slate-950/80)
+- Footer with branding ("Powered by Claude Code")
+- Dark theme with slate-950 background
+- Imports Google Fonts (Poppins + Open Sans)
 
 **src/app/page.tsx**
-- Homepage component
-- Currently displays "Welcome to IdeaForge" placeholder
-- Will be replaced with ideas dashboard in Phase 5
+- Dashboard page displaying all ideas
+- Server component fetching from database via Prisma
+- Responsive grid layout (1/2/3 columns)
+- Idea cards with hover effects (violet shadow)
+- Shows original idea (80 chars) and enhanced idea (120 chars) truncated
+- Displays creation date and "View details" link
+- Empty state with helpful message when no ideas exist
+- Helper functions: `formatDate()`, `truncate()`
 
 **src/app/globals.css**
-- Contains Tailwind CSS directives: `@tailwind base/components/utilities`
-- Entry point for all Tailwind styles
-- Can add custom global styles here
+- Google Fonts import for Poppins and Open Sans
+- Tailwind CSS directives (@tailwind base/components/utilities)
+- Base font-family settings for body and headings
+- Note: Custom @apply classes removed due to Tailwind v4 compatibility
+
+**src/app/ideas/[id]/page.tsx**
+- Idea detail page with all related data
+- Server component with Prisma includes for all relations
+- 7 organized sections with consistent styling:
+  1. Idea Comparison (original vs enhanced side-by-side)
+  2. Validation Scores (progress bars with color coding)
+  3. Strategic Improvements (dimension-labeled cards)
+  4. Core Features (grouped by priority)
+  5. Tech Stack (grouped by category)
+  6. User Flow (JSON placeholder for Phase 6)
+  7. Kanban Board (5 columns with tickets)
+- Helper functions for color coding scores, priorities, and statuses
+- Back to Dashboard navigation link
+
+**src/app/ideas/[id]/not-found.tsx**
+- Custom 404 page for when idea doesn't exist
+- Displays friendly error message
+- Button to return to dashboard
 
 ---
 
@@ -285,4 +371,4 @@ All related models cascade on delete from Idea.
 
 ---
 
-**Last Updated:** 2026-01-02 (Phase 3 - API routes added)
+**Last Updated:** 2026-01-02 (Phase 5 - Frontend basic layout completed)
